@@ -6,6 +6,38 @@ import keyboardcontrol as kc
 from persondetector import findBody, findFace
 from firedetector import FireDetector
 
+
+def getKeyboardInput():
+    lr, fb, ud, yv = 0, 0, 0, 0
+    speed = 50
+
+    if kc.getKey("LEFT"):
+        lr = -speed
+    elif kc.getKey("RIGHT"):
+        lr = speed
+
+    if kc.getKey("UP"):
+        fb = speed
+    elif kc.getKey("DOWN"):
+        fb = -speed
+
+    if kc.getKey("w"):
+        ud = speed
+    elif kc.getKey("s"):
+        ud = -speed
+
+    if kc.getKey("a"):
+        yv = -speed
+    elif kc.getKey("d"):
+        yv = speed
+
+    if kc.getKey("q"):
+        yv = drone.land()
+    #if kc.getKey("e"): yv = drone.takeoff()
+
+    return[lr, fb, ud, yv]
+
+
 drone = tello.Tello()
 drone.connect()
 
@@ -13,32 +45,10 @@ print(drone.get_battery())
 
 drone.streamon()
 
-cap = cv2.VideoCapture(0)
-
 kc.init()
 
 start = 0
-def getKeyboardInput():
-    lr, fb, ud, yv = 0,0,0,0
-    speed =50
-
-    if kc.getKey("LEFT"): lr = -speed
-    elif kc.getKey("RIGHT"): lr = speed
-
-    if kc.getKey("UP"): fb = speed
-    elif kc.getKey("DOWN"): fb = -speed
-
-    if kc.getKey("w"): ud = speed
-    elif kc.getKey("s"): ud = -speed
-
-    if kc.getKey("a"): yv = -speed
-    elif kc.getKey("d"): yv = speed
-
-    if kc.getKey("q"): yv = drone.land()
-    #if kc.getKey("e"): yv = drone.takeoff()
-
-    return[lr, fb, ud, yv]
-
+firedetector = FireDetector()
 
 while True:
     image = drone.get_frame_read().frame
@@ -49,7 +59,6 @@ while True:
 
     findBody(image)
     findFace(image)
-    firedetector = FireDetector()
     firedetector.nextframe(image)
     firedetector.detect()
 

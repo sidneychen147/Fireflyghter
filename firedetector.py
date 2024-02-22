@@ -3,6 +3,15 @@ import numpy as np
 import detector as dt
 
 
+def findfire_haar(img):
+    haarcascade = cv2.CascadeClassifier("files/haarcascade_fire.xml")
+    img_gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    faces = haarcascade.detectMultiScale(img_gray,1.2, 8)
+
+    for (x, y, w, h) in faces:
+        cv2.rectangle(img, (x, y), (x+w, y+h), (0, 0, 255), 2)
+
+
 class FireDetector(dt.Detector):
     def __init__(self):
         super().__init__()
@@ -36,9 +45,8 @@ class FireDetector(dt.Detector):
             contours, _ = cv2.findContours(intersection, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
         if len(contours) > 0:
-            # Draw rectangles around detected regions
+            # Draw red rectangles around detected regions
             for contour in contours:
                 if cv2.contourArea(contour) > 5:
                     x, y, w, h = cv2.boundingRect(contour)
                     cv2.rectangle(self.framelist[-1], (x, y), (x + w, y + h), (0, 0, 255), 2)
-        return
