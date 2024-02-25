@@ -4,11 +4,12 @@ from firedetector import FireDetector
 
 cap = cv2.VideoCapture(0)
 
+firedetector = FireDetector()
+
 while True:
     _, image = cap.read()
     findBody(image)
     findFace(image)
-    firedetector = FireDetector()
     firedetector.nextframe(image)
     firedetector.detect()
 
