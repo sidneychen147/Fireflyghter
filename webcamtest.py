@@ -10,7 +10,8 @@ while True:
     _, image = cap.read()
     findBody(image)
     findFace(image)
-    firedetector.detect(image)
+    firedetector.nextframe(image)
+    firedetector.detect()
 
     image = cv2.resize(image, (360, 240))
     cv2.imshow("Output", image)
