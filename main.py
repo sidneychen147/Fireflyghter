@@ -1,3 +1,7 @@
+"""
+main.py
+main program; controls drone and handles fire/person detection
+"""
 from djitellopy import tello
 import cv2
 import numpy as np
@@ -48,6 +52,7 @@ drone.streamon()
 kc.init()
 
 start = 0
+
 firedetector = FireDetector()
 
 while True:
@@ -59,8 +64,7 @@ while True:
 
     findBody(image)
     findFace(image)
-    firedetector.nextframe(image)
-    firedetector.detect()
+    firedetector.detect(image)
 
     image = cv2.resize(image, (360, 240))
     cv2.imshow("Image", image)

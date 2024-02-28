@@ -1,15 +1,14 @@
+"""
+firedetector.py
+Detector class to identify fire objects
+"""
 import cv2
 import numpy as np
 import detector as dt
 
 
 def findfire_haar(img):
-    haarcascade = cv2.CascadeClassifier("files/haarcascade_fire.xml")
-    img_gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-    faces = haarcascade.detectMultiScale(img_gray,1.2, 8)
-
-    for (x, y, w, h) in faces:
-        cv2.rectangle(img, (x, y), (x+w, y+h), (0, 0, 255), 2)
+    dt.find_haarcascade(img, "files/haarcascade_fire.xml", (0, 0, 255))
 
 
 class FireDetector(dt.Detector):
@@ -17,15 +16,16 @@ class FireDetector(dt.Detector):
         super().__init__()
         self.maxframecount = 2
 
-    def detect(self):
+    def detect(self, image=None):
+        super().detect(image)
         contours = []
 
         # turn current frame into HSV
         hsv = cv2.cvtColor(self.framelist[-1], cv2.COLOR_BGR2HSV)
 
         # Define lower and upper bounds for fire color in HSV
-        lower_bound = np.array([0, 127, 200])
-        upper_bound = np.array([18, 255, 255])
+        lower_bound = np.array([18,50,50])#0, 127, 200])
+        upper_bound = np.array([35, 255, 255])#18, 255, 255])
 
         # Create a binary mask for the fire color range
         fire_mask = cv2.inRange(hsv, lower_bound, upper_bound)
@@ -37,16 +37,18 @@ class FireDetector(dt.Detector):
 
         # Check for fire motion
         if len(self.framelist) >= self.maxframecount:
-            frame_diff = cv2.absdiff(cv2.cvtColor(self.framelist[-2], cv2.COLOR_BGR2HSV)[:, :, 2], hsv[:, :, 2])
-            _, threshold_diff = cv2.threshold(frame_diff, 10, 255, cv2.THRESH_BINARY)
+            prevframe = cv2.cvtColor(self.framelist[-2], cv2.COLOR_BGR2HSV)[:, :, 2]
+            currframe = hsv[:, :, 2]
+            if (len(prevframe) == len(currframe)):
+                frame_diff = cv2.absdiff(prevframe, currframe)
+                _, threshold_diff = cv2.threshold(frame_diff, 10, 255, cv2.THRESH_BINARY)
 
-            # Check for both fire color and fire motion, generate overlapped contours
-            intersection = cv2.bitwise_and(fire_mask, threshold_diff)
-            contours, _ = cv2.findContours(intersection, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+                # Check for both fire color and fire motion, generate overlapped contours
+                intersection = cv2.bitwise_and(fire_mask, threshold_diff)
+                contours, _ = cv2.findContours(intersection, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
-        if len(contours) > 0:
-            # Draw red rectangles around detected regions
-            for contour in contours:
-                if cv2.contourArea(contour) > 5:
-                    x, y, w, h = cv2.boundingRect(contour)
-                    cv2.rectangle(self.framelist[-1], (x, y), (x + w, y + h), (0, 0, 255), 2)
+        # If any regions are detected, identify them
+        for contour in contours:
+            if cv2.contourArea(contour) > 5:
+                x, y, w, h = cv2.boundingRect(contour)
+                cv2.rectangle(self.framelist[-1], (x, y), (x + w, y + h), (0, 0, 255), 2)

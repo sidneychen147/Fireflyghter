@@ -1,6 +1,8 @@
-
+"""
+inference.py
+"""
 from PIL import Image
-from torchfusion_utils.models import load_model,save_model
+from torchfusion_utils.models import load_model, save_model
 import torch
 from torchvision import datasets, transforms, models
 import numpy as np
@@ -10,61 +12,68 @@ import cv2
 from PIL import Image
 import glob
 
+'''
+since the pathways are dependent on the user & the setup they are running,
+i am making a comment here to store the different systems
+'''
+checkpoints = [r'C:\Users\alexx\OneDrive\Senior Design\fire-flame.pt',
+               r"C:\Users\aaron\PycharmProjects\Fireflyghter\fire-flame.pt"]
+images = [r"C:\Users\alexx\OneDrive\Senior Design\content\img_folder\*",
+          r"C:\Users\alexx\PycharmProjects\Fireflyghter\img_folder\*"]
+outputs = [r"C:\Users\alexx\OneDrive\Senior Design\outputimg{}",
+           r"C:\Users\aaron\PycharmProjects\Fireflyghter\outputimg{}"]
+
 model = models.mobilenet_v3_small(weights=False)
-checkpoint_path = r'C:\Users\alexx\OneDrive\Senior Design\fire-flame.pt'
+checkpoint_path = checkpoints[1]
 load_model(model, checkpoint_path)
 model.eval()
 load_saved_model = torch.load('fire-flame.pt')
 transformer = transforms.Compose([transforms.Resize(225),
-                    transforms.CenterCrop(224),
-                    transforms.ToTensor(),
-                    transforms.Normalize([0.5, 0.5, 0.5],
-                                        [0.5, 0.5, 0.5])])
+                                  transforms.CenterCrop(224),
+                                  transforms.ToTensor(),
+                                  transforms.Normalize([0.5, 0.5, 0.5],
+                                                       [0.5, 0.5, 0.5])])
 
+for img_path in glob.glob(images[1]):
+    img = cv2.imread(img_path)
+    img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+    img = Image.fromarray(img.astype('uint8'))
+    # orig = img.copy()
+    img_processed = transformer(img).unsqueeze(0)
+    img_var = Variable(img_processed, requires_grad=False)
+    if torch.cuda.is_available():
+        img_var = img_var.cuda()
+        model.cuda()
 
-for img_path in glob.glob(r"C:\Users\alexx\OneDrive\Senior Design\content\img_folder\*"):
-  img = cv2.imread(img_path)
-  img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-  img = Image.fromarray(img.astype('uint8'))
-  #orig = img.copy()
-  img_processed = transformer(img).unsqueeze(0)
-  img_var = Variable(img_processed, requires_grad= False)
-  if torch.cuda.is_available():
-    img_var = img_var.cuda()
-    model.cuda()
+    load_saved_model.eval()
+    # logp = load_model(img_var)
+    expp = torch.softmax(model, dim=1)
+    confidence, clas = expp.topk(1, dim=1)
 
-  load_saved_model.eval()
-  #logp = load_model(img_var)
-  expp = torch.softmax(model, dim=1)
-  confidence, clas = expp.topk(1, dim=1)
+    co = confidence.item() * 100
 
-  co = confidence.item() * 100
+    class_no = str(clas).split(',')[0]
+    class_no = class_no.split('(')
+    class_no = class_no[1].rstrip(']]')
+    class_no = class_no.lstrip('[[')
 
+    orig = np.array(orig)
+    orig = cv2.cvtColor(orig, cv2.COLOR_BGR2RGB)
+    orig = cv2.resize(orig, (800, 500))
 
-  class_no = str(clas).split(',')[0]
-  class_no = class_no.split('(')
-  class_no = class_no[1].rstrip(']]')
-  class_no = class_no.lstrip('[[')
+    if class_no == '1':
+        label = "Neutral: " + str(co) + "%"
+        cv2.putText(orig, label, (10, 25), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 2)
 
+    elif class_no == '2':
+        label = "Smoke: " + str(co) + "%"
+        cv2.putText(orig, label, (10, 25), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 0, 0), 2)
 
-  orig = np.array(orig)
-  orig = cv2.cvtColor(orig,cv2.COLOR_BGR2RGB)
-  orig = cv2.resize(orig,(800,500))
+    elif class_no == '0':
+        label = "Fire: " + str(co) + "%"
+        cv2.putText(orig, label, (10, 25), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 255), 2)
 
-  if class_no == '1':
-    label = "Nuetral: " + str(co)+"%"
-    cv2.putText(orig, label, (10, 25), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 2)
-
-  elif class_no =='2':
-    label = "Smoke: " + str(co)+"%"
-    cv2.putText(orig, label, (10, 25), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 0, 0), 2)
-
-  elif class_no == '0':
-    label = "Fire: " + str(co)+"%"
-    cv2.putText(orig, label, (10, 25), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 255), 2)
-
-
-  cv2.imwrite(r"C:\Users\alexx\OneDrive\Senior Design\outputimg{}".format(img_path.split("/")[-1]), orig),
+    cv2.imwrite(outputs[0].format(img_path.split("/")[-1]), orig),
 
 # import torch
 # from torchvision import transforms, models
