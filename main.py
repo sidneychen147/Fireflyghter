@@ -44,9 +44,7 @@ def getKeyboardInput():
 
 drone = tello.Tello()
 drone.connect()
-
 print(drone.get_battery())
-
 drone.streamon()
 
 kc.init()
@@ -57,16 +55,18 @@ firedetector = FireDetector()
 
 while True:
     image = drone.get_frame_read().frame
+    image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
 
     if start == 0:
-        drone.takeoff()
+        #drone.takeoff()
         start = 1
 
     findBody(image)
     findFace(image)
+    firedetector.nextframe(image)
     firedetector.detect(image)
 
-    image = cv2.resize(image, (360, 240))
+    image = cv2.resize(image, (800, 600))
     cv2.imshow("Image", image)
 
     vals = getKeyboardInput()
