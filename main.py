@@ -6,11 +6,11 @@ from djitellopy import tello
 import cv2
 import numpy as np
 from time import sleep
-import keyboardcontrol as kc
+#import keyboardcontrol as kc
 from persondetector import findBody, findFace
 from firedetector import FireDetector
 
-
+"""
 def getKeyboardInput():
     lr, fb, ud, yv = 0, 0, 0, 0
     speed = 50
@@ -40,14 +40,14 @@ def getKeyboardInput():
     #if kc.getKey("e"): yv = drone.takeoff()
 
     return[lr, fb, ud, yv]
-
+"""
 
 drone = tello.Tello()
 drone.connect()
 print(drone.get_battery())
 drone.streamon()
 
-kc.init()
+#kc.init()
 
 start = 0
 
@@ -58,19 +58,19 @@ while True:
     image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
 
     if start == 0:
-        #drone.takeoff()
+        drone.takeoff()
         start = 1
 
     findBody(image)
     findFace(image)
     firedetector.nextframe(image)
-    firedetector.detect(image)
+    firedetector.detect()
 
     image = cv2.resize(image, (800, 600))
     cv2.imshow("Image", image)
 
-    vals = getKeyboardInput()
-    drone.send_rc_control(vals[0], vals[1], vals[2], vals[3])
+    #vals = getKeyboardInput()
+    #drone.send_rc_control(vals[0], vals[1], vals[2], vals[3])
 
     sleep(0.05)
 
