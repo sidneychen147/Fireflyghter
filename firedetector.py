@@ -49,4 +49,4 @@ class FireDetector(dt.Detector):
             for contour in contours:
                 if cv2.contourArea(contour) > 5:
                     x, y, w, h = cv2.boundingRect(contour)
-                    cv2.rectangle(self.framelist[-1], (x, y), (x + w, y + h), (0, 0, 255), 2)
+                    cv2.rectangle(self.framelist[-1], (x, y), (x + w, y + h), (255, 0, 0), 2)
