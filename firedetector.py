@@ -16,16 +16,15 @@ class FireDetector(dt.Detector):
         super().__init__()
         self.maxframecount = 2
 
-    def detect(self, image=None):
-        super().detect(image)
+    def detect(self):
         contours = []
 
         # turn current frame into HSV
         hsv = cv2.cvtColor(self.framelist[-1], cv2.COLOR_BGR2HSV)
 
         # Define lower and upper bounds for fire color in HSV
-        lower_bound = np.array([18, 50, 50])  # 0, 127, 200])
-        upper_bound = np.array([35, 255, 255])  # 18, 255, 255])
+        lower_bound = np.array([0, 127, 200])  # 18, 50, 50])
+        upper_bound = np.array([18, 255, 255])  # 35, 255, 255])
 
         # Create a binary mask for the fire color range
         fire_mask = cv2.inRange(hsv, lower_bound, upper_bound)

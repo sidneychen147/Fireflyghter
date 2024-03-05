@@ -12,7 +12,7 @@ def find_haarcascade(img, haarcascadepath, outputcolor):
     faces = hc.detectMultiScale(img_gray, 1.2, 8)
 
     for (x, y, w, h) in faces:
-        cv2.rectangle(img, (x, y), (x+w, y+h), outputcolor, 2)
+        cv2.rectangle(img, (x, y), (x+w, y+h), (0,255,0), 2)
 
 
 def calculate_contour_distance(contour_1, contour_2):
