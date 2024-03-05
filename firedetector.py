@@ -8,7 +8,7 @@ import detector as dt
 
 
 def findfire_haar(img):
-    dt.find_haarcascade(img, "files/haarcascade_fire.xml", (0, 0, 255))
+    dt.find_haar_cascade(img, "files/haarcascade_fire.xml", (0, 0, 255))
 
 
 class FireDetector(dt.Detector):
@@ -16,7 +16,8 @@ class FireDetector(dt.Detector):
         super().__init__()
         self.maxframecount = 2
 
-    def detect(self):
+    def detect(self, image=None):
+        super().detect(image)
         contours = []
 
         # turn current frame into HSV
@@ -48,9 +49,17 @@ class FireDetector(dt.Detector):
 
         # refine contours by clustering and filtering out potential false positives (remove the smallest contours)
         contours = dt.cluster_contours(contours, 2)
-        contours = dt.cluster_contours(filter(lambda cntr: cv2.contourArea(cntr) > 10, contours), 10)
+        contours = dt.cluster_contours(filter(lambda cntr: cv2.contourArea(cntr) > 10, contours))
+        if len(contours) > 0:
+            max_contour = contours[0]
+            for contour in contours:
+                if cv2.contourArea(contour) > cv2.contourArea(max_contour):
+                    max_contour = contour
 
-        # If any regions are detected, identify them
+            x, y, w, h = cv2.boundingRect(max_contour)
+            cv2.rectangle(self.framelist[-1], (x, y), (x + w, y + h), (255, 0, 0), 2)
+
+        '''# If any regions are detected, identify them
         for contour in contours:
             x, y, w, h = cv2.boundingRect(contour)
-            cv2.rectangle(self.framelist[-1], (x, y), (x + w, y + h), (0, 0, 255), 2)
+            cv2.rectangle(self.framelist[-1], (x, y), (x + w, y + h), (255, 0, 0), 2)'''

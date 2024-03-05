@@ -6,13 +6,13 @@ import numpy as np
 import cv2
 
 
-def find_haarcascade(img, haarcascadepath, outputcolor):
-    hc = cv2.CascadeClassifier(haarcascadepath)
+def find_haar_cascade(img, haar_cascade_path, output_color):
+    hc = cv2.CascadeClassifier(haar_cascade_path)
     img_gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-    faces = hc.detectMultiScale(img_gray, 1.2, 8)
+    contours = hc.detectMultiScale(img_gray, 1.2, 8)
 
-    for (x, y, w, h) in faces:
-        cv2.rectangle(img, (x, y), (x+w, y+h), (0,255,0), 2)
+    for (x, y, w, h) in contours:
+        cv2.rectangle(img, (x, y), (x+w, y+h), output_color, 2)
 
 
 def calculate_contour_distance(contour_1, contour_2):
