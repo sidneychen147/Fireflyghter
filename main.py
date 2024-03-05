@@ -56,7 +56,7 @@ start = 0
 firedetector = FireDetector()
 
 while True:
-    image = drone.get_frame_read().frame
+    image = cv2.cvtColor(drone.get_frame_read().frame, cv2.COLOR_RGB2BGR)
 
     if start == 0:
         drone.takeoff()
