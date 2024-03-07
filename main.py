@@ -54,8 +54,7 @@ start = 0
 firedetector = FireDetector()
 
 while True:
-    image = drone.get_frame_read().frame
-    image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
+    image = cv2.cvtColor(drone.get_frame_read().frame, cv2.COLOR_RGB2BGR)
 
     if start == 0:
         drone.takeoff()
@@ -63,8 +62,7 @@ while True:
 
     findBody(image)
     findFace(image)
-    firedetector.nextframe(image)
-    firedetector.detect()
+    firedetector.detect(image)
 
     image = cv2.resize(image, (800, 600))
     cv2.imshow("Image", image)

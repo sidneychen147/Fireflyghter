@@ -3,15 +3,13 @@ from persondetector import findBody, findFace
 from firedetector import FireDetector, findfire_haar
 
 cap = cv2.VideoCapture(0)
-firedetector = FireDetector()
+fdt = FireDetector()
 
 while True:
     _, image = cap.read()
     findBody(image)
     findFace(image)
-
-    firedetector.nextframe(image)
-    firedetector.detect()
+    fdt.detect(image)
 
     image = cv2.resize(image, (800, 600))
     cv2.imshow("Output", image)
