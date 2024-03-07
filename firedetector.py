@@ -6,6 +6,7 @@ import cv2
 import numpy as np
 import detector as dt
 
+
 text = 'Potential fire detected'
 
 def set_text(new_text):

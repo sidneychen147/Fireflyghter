@@ -14,6 +14,7 @@ drone.streamon()
 cap = cv2.VideoCapture('http://169.254.208.144:8000/video_feed')
 
 firedetector = FireDetector()
+
 temp = 0
 
 # get max temp
