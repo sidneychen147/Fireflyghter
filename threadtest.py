@@ -1,10 +1,9 @@
 import cv2
-from persondetector import findBody, findFace
-from firedetector import FireDetector
+# from persondetector import findBody, findFace
 import threading
 from djitellopy import tello
 import requests
-from firedetector import FireDetector, set_text
+from firedetector import FireDetector
 
 # initialize
 drone = tello.Tello()
@@ -16,6 +15,7 @@ cap = cv2.VideoCapture('http://169.254.208.144:8000/video_feed')
 firedetector = FireDetector()
 
 temp = 0
+
 
 # get max temp
 def get_temp():
@@ -30,19 +30,20 @@ def process_drone_cam(drone, firedetector):
     while True:
         image = drone.get_frame_read().frame
         image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
-        #findBody(image)
-        #findFace(image)
+        # findBody(image)
+        # findFace(image)
         firedetector.nextframe(image)
         firedetector.detect()
-        if temp > 300 and firedetector.detect() == True:
-            set_text('Real fire detected')
+        if temp > 300 and firedetector.detect():
+            firedetector.set_text('Real fire detected')
         if temp < 300:
-            set_text('Potential fire detected')
+            firedetector.set_text('Potential fire detected')
         image = cv2.resize(image, (640, 480))
         cv2.imshow("Drone camera", image)
         if cv2.waitKey(1) & 0xFF == ord('q'):
             drone.streamoff()
             break
+
 
 # process thermal camera
 def process_therm_cam(cap, firedetector):

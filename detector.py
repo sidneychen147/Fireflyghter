@@ -6,7 +6,7 @@ import numpy as np
 import cv2
 
 
-def find_haar_cascade(img, haar_cascade_path, output_color):
+def find_haar_cascade(img, haar_cascade_path, output_color=(255, 255, 255)):
     hc = cv2.CascadeClassifier(haar_cascade_path)
     img_gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     contours = hc.detectMultiScale(img_gray, 1.2, 8)

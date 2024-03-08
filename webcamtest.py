@@ -1,6 +1,6 @@
 import cv2
 from persondetector import findBody, findFace
-from firedetector import FireDetector, findfire_haar
+from firedetector import FireDetector
 
 cap = cv2.VideoCapture(0)
 fdt = FireDetector()

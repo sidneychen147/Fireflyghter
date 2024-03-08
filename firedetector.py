@@ -7,19 +7,19 @@ import numpy as np
 import detector as dt
 
 
-text = 'Potential fire detected'
-
-def set_text(new_text):
-    global text
-    text = new_text
+# find fire using pretrained haar cascade
 def findfire_haar(img):
-    dt.find_haar_cascade(img, "files/haarcascade_fire.xml", (0, 0, 255))
+    dt.find_haar_cascade(img, "files/haarcascade_fire.xml", (255, 0, 0))
 
 
 class FireDetector(dt.Detector):
     def __init__(self):
         super().__init__()
         self.maxframecount = 2
+        self.displaytext = 'Potential fire detected'
+
+    def set_displaytext(self, new_text):
+        self.displaytext = new_text
 
     def detect(self, image=None):
         super().detect(image)
@@ -63,9 +63,10 @@ class FireDetector(dt.Detector):
 
             x, y, w, h = cv2.boundingRect(max_contour)
             cv2.rectangle(self.framelist[-1], (x, y), (x + w, y + h), (255, 0, 0), 2)
-            cv2.putText(self.framelist[-1], text, (x, y), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
+            cv2.putText(self.framelist[-1], self.displaytext, (x, y), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
             return True
         '''# If any regions are detected, identify them
         for contour in contours:
             x, y, w, h = cv2.boundingRect(contour)
             cv2.rectangle(self.framelist[-1], (x, y), (x + w, y + h), (255, 0, 0), 2)'''
+        return False

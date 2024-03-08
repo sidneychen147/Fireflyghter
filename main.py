@@ -4,9 +4,9 @@ main program; controls drone and handles fire/person detection
 """
 from djitellopy import tello
 import cv2
-import numpy as np
+# import numpy as np
 from time import sleep
-#import keyboardcontrol as kc
+# import keyboardcontrol as kc
 from persondetector import findBody, findFace
 from firedetector import FireDetector
 
@@ -47,7 +47,7 @@ drone.connect()
 print(drone.get_battery())
 drone.streamon()
 
-#kc.init()
+# kc.init()
 
 start = 0
 
@@ -67,8 +67,8 @@ while True:
     image = cv2.resize(image, (800, 600))
     cv2.imshow("Image", image)
 
-    #vals = getKeyboardInput()
-    #drone.send_rc_control(vals[0], vals[1], vals[2], vals[3])
+    # vals = getKeyboardInput()
+    # drone.send_rc_control(vals[0], vals[1], vals[2], vals[3])
 
     sleep(0.05)
 

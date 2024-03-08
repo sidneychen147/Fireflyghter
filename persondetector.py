@@ -1,4 +1,7 @@
-import cv2
+"""
+persondetector.py
+Detectors for human features (face, upper body)
+"""
 import detector as dt
 
 
