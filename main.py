@@ -4,76 +4,120 @@ main program; controls drone and handles fire/person detection
 """
 from djitellopy import tello
 import cv2
-# import numpy as np
+import numpy as np
 from time import sleep
-# import keyboardcontrol as kc
 from persondetector import findBody, findFace
 from firedetector import FireDetector
+import requests
+import threading
 
-"""
-def getKeyboardInput():
-    lr, fb, ud, yv = 0, 0, 0, 0
-    speed = 50
-
-    if kc.getKey("LEFT"):
-        lr = -speed
-    elif kc.getKey("RIGHT"):
-        lr = speed
-
-    if kc.getKey("UP"):
-        fb = speed
-    elif kc.getKey("DOWN"):
-        fb = -speed
-
-    if kc.getKey("w"):
-        ud = speed
-    elif kc.getKey("s"):
-        ud = -speed
-
-    if kc.getKey("a"):
-        yv = -speed
-    elif kc.getKey("d"):
-        yv = speed
-
-    if kc.getKey("q"):
-        yv = drone.land()
-    #if kc.getKey("e"): yv = drone.takeoff()
-
-    return[lr, fb, ud, yv]
-"""
 
 drone = tello.Tello()
 drone.connect()
-print(drone.get_battery())
 drone.streamon()
 
-# kc.init()
-
-start = 0
+cap = cv2.VideoCapture('http://169.254.208.144:8000/video_feed')
 
 firedetector = FireDetector()
 
-while True:
-    image = cv2.cvtColor(drone.get_frame_read().frame, cv2.COLOR_RGB2BGR)
+temp = 0
 
-    if start == 0:
-        drone.takeoff()
-        start = 1
+def process_drone_cam(drone, firedetector):
+    start = 0
+    while True:
+        image = drone.get_frame_read().frame
+        image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
+        firedetector.nextframe(image)
+        fire_detected, coordinates = firedetector.detect()
+        cv2.rectangle(image,(445, 365), (195, 115), (0, 255, 0), 2)
+        if temp > 300 and fire_detected:
+            #firedetector.set_text('Real fire detected')
+        if temp < 300:
+            #firedetector.set_text('Potential fire detected')
+        left_right_velocity = 0
+        for_back_velocity = 0
+        up_down_velocity = 0
+        yaw_velocity = 0
+        if fire_detected:
+            x, y, x2, y2 = coordinates
+            xcenter = 320
+            ycenter = 240
+            objcenterx = (x + x2) // 2
+            objcentery = (y + y2) // 2
+            errorx = objcenterx - xcenter
+            errory = objcentery - ycenter
+            if abs(errorx) > 125:
+                if errorx < 0:
+                    yaw_velocity = -50
+                    print("move left")
+                else:
+                    yaw_velocity = 50
+                    print("move right")
+            if abs(errory) > 125:
+                if errory < 0:
+                    up_down_velocity = 40
+                    print("move up")
+                else:
+                    up_down_velocity = -40
+                    print("move down")
+        else:
+            left_right_velocity = 0
+            for_back_velocity = 20
+            up_down_velocity = 0
+            yaw_velocity = 0
+            print("no")
+        image = cv2.resize(image, (640, 480))
+        cv2.imshow("Drone camera", image)
+        if start == 0:
+            drone.takeoff()
+            start = 1
+        if drone.send_rc_control:
+            print(f"Battery Level: {drone.get_battery()}")
+            drone.send_rc_control(left_right_velocity, for_back_velocity, up_down_velocity, yaw_velocity)
+        if cv2.waitKey(1) & 0xFF == ord('q'):
+            drone.streamoff()
+            drone.land()
+            break
 
-    findBody(image)
-    findFace(image)
-    firedetector.detect(image)
+# process thermal camera
+def process_therm_cam(cap, firedetector):
+    global temp
+    frame_counter = 0
+    while True:
+        _, imagef = cap.read()
+        frame_counter += 1
+        if frame_counter % 5 == 0:
+            print(temp)
+            imagef = cv2.resize(imagef, (640, 480))
+            cv2.imshow("Thermal camera", imagef)
+            print(f"Battery Level: {drone.get_battery()}")
+        if cv2.waitKey(1) & 0xFF == ord('q'):
+            break
 
-    image = cv2.resize(image, (800, 600))
-    cv2.imshow("Image", image)
+# get max temp
+def get_temp():
+    global temp
+    while True:
+        response = requests.get("http://169.254.208.144:8000/get_temp")
+        temp = float(response.text)
 
-    # vals = getKeyboardInput()
-    # drone.send_rc_control(vals[0], vals[1], vals[2], vals[3])
+# Start the threads
+drone_thread = threading.Thread(target=process_drone_cam, args=(drone, firedetector))
+therm_thread = threading.Thread(target=process_therm_cam, args=(cap, firedetector))
+temp_thread = threading.Thread(target=get_temp)
 
-    sleep(0.05)
+# Start the threads
+drone_thread.start()
+therm_thread.start()
+temp_thread.start()
 
-    if cv2.waitKey(1) & 0xFF == ord('q'):
-        drone.streamoff()
-        break
+# Wait for threads to finish
+drone_thread.join()
+therm_thread.join()
+temp_thread.join()
 
+# Clean up
+drone.streamoff()
+drone.land()
+cap.release()
 cv2.destroyAllWindows()

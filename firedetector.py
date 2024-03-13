@@ -64,9 +64,9 @@ class FireDetector(dt.Detector):
             x, y, w, h = cv2.boundingRect(max_contour)
             cv2.rectangle(self.framelist[-1], (x, y), (x + w, y + h), (255, 0, 0), 2)
             cv2.putText(self.framelist[-1], self.displaytext, (x, y), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
-            return True
+            return True, (x, y, x + w, y + h)
         '''# If any regions are detected, identify them
         for contour in contours:
             x, y, w, h = cv2.boundingRect(contour)
             cv2.rectangle(self.framelist[-1], (x, y), (x + w, y + h), (255, 0, 0), 2)'''
-        return False
+        return False, None
