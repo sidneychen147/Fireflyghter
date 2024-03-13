@@ -16,7 +16,7 @@ drone = tello.Tello()
 drone.connect()
 drone.streamon()
 
-cap = cv2.VideoCapture('http://169.254.208.144:8000/video_feed')
+cap = cv2.VideoCapture('http://11.26.15.61:8000/video_feed')
 
 firedetector = FireDetector()
 
@@ -98,7 +98,7 @@ def process_therm_cam(cap, firedetector):
 def get_temp():
     global temp
     while True:
-        response = requests.get("http://169.254.208.144:8000/get_temp")
+        response = requests.get("http://11.26.15.61:8000/get_temp")
         temp = float(response.text)
 
 # Start the threads
