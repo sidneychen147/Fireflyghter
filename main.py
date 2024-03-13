@@ -19,11 +19,11 @@ drone.streamon()
 cap = cv2.VideoCapture('http://11.26.15.61:8000/video_feed')
 
 firedetector = FireDetector()
-
+start = 0
 temp = 0
 
 def process_drone_cam(drone, firedetector):
-    start = 0
+    global start
     while True:
         image = drone.get_frame_read().frame
         image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
@@ -37,7 +37,7 @@ def process_drone_cam(drone, firedetector):
         for_back_velocity = 0
         up_down_velocity = 0
         yaw_velocity = 0
-        if fire_detected:
+        if fire_detected & start == 1:
             x, y, x2, y2 = coordinates
             xcenter = 320
             ycenter = 240
@@ -48,17 +48,13 @@ def process_drone_cam(drone, firedetector):
             if abs(errorx) > 125:
                 if errorx < 0:
                     yaw_velocity = -75
-                    print("move left")
                 else:
                     yaw_velocity = 75
-                    print("move right")
             if abs(errory) > 125:
                 if errory < 0:
                     up_down_velocity = 40
-                    print("move up")
                 else:
                     up_down_velocity = -40
-                    print("move down")
         elif temp < 300:
             left_right_velocity = 0
             for_back_velocity = 20
@@ -92,7 +88,7 @@ def process_therm_cam(cap, firedetector):
         _, imagef = cap.read()
         frame_counter += 1
         if frame_counter % 5 == 0:
-            print(temp)
+            print("Max temperature detected in frame:", temp)
             imagef = cv2.resize(imagef, (640, 480))
             cv2.imshow("Thermal camera", imagef)
             print(f"Battery Level: {drone.get_battery()}")
